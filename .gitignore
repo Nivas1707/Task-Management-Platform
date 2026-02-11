@@ -1,9 +1,6 @@
 node_modules
+.env
 dist
 build
-.env
 .DS_Store
-*.log
 coverage
-.vscode
-public/uploads

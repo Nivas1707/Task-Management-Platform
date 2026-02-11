@@ -1,7 +1,40 @@
 import { Request, Response } from 'express';
 import prisma from '../../utils/prisma';
-import { createCommentSchema } from './comment.schema';
+import { createCommentSchema, updateCommentSchema } from './comment.schema';
 import { AuthRequest } from '../../middleware/auth';
+
+export const updateComment = async (req: AuthRequest, res: Response): Promise<void> => {
+    if (!req.user) { res.status(401).json({ message: 'Unauthorized' }); return; }
+    try {
+        const { id } = req.params;
+        const validation = updateCommentSchema.safeParse(req.body);
+        if (!validation.success) {
+            res.status(400).json({ errors: validation.error.issues });
+            return;
+        }
+
+        const comment = await prisma.comment.findUnique({ where: { id: String(id) } });
+        if (!comment) {
+            res.status(404).json({ message: 'Comment not found' });
+            return;
+        }
+
+        if (comment.userId !== req.user.id) {
+            res.status(403).json({ message: 'Forbidden' });
+            return;
+        }
+
+        const updatedComment = await prisma.comment.update({
+            where: { id: String(id) },
+            data: { content: validation.data.content },
+            include: { user: { select: { id: true, name: true } } }
+        });
+
+        res.json(updatedComment);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error });
+    }
+};
 
 export const createComment = async (req: AuthRequest, res: Response): Promise<void> => {
     if (!req.user) { res.status(401).json({ message: 'Unauthorized' }); return; }

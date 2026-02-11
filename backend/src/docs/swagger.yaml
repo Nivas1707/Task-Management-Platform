@@ -1,0 +1,169 @@
+openapi: 3.0.0
+info:
+  title: Task Management API
+  description: API documentation for the Task Management System
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000/api
+    description: Local server
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+security:
+  - bearerAuth: []
+paths:
+  /auth/register:
+    post:
+      summary: Register a new user
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 6
+                name:
+                  type: string
+      responses:
+        201:
+          description: User created
+        400:
+          description: Validation error
+  /auth/login:
+    post:
+      summary: Login user
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        200:
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  user:
+                    type: object
+  /tasks:
+    get:
+      summary: Get all tasks
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+        - in: query
+          name: limit
+          schema:
+            type: integer
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [OPEN, IN_PROGRESS, DONE]
+        - in: query
+          name: priority
+          schema:
+            type: string
+            enum: [LOW, MEDIUM, HIGH]
+      responses:
+        200:
+          description: List of tasks
+    post:
+      summary: Create a new task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                status:
+                  type: string
+                  enum: [OPEN, IN_PROGRESS, DONE]
+                priority:
+                  type: string
+                  enum: [LOW, MEDIUM, HIGH]
+                dueDate:
+                  type: string
+                  format: date-time
+      responses:
+        201:
+          description: Task created
+  /tasks/{id}:
+    get:
+      summary: Get a specific task
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Task details
+        404:
+          description: Task not found
+    put:
+      summary: Update a task
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                status:
+                  type: string
+                priority:
+                  type: string
+      responses:
+        200:
+          description: Task updated
+    delete:
+      summary: Delete a task
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Task deleted

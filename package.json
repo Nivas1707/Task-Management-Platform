@@ -1,0 +1,16 @@
+{
+    "name": "autonomize-ai-root",
+    "version": "1.0.0",
+    "description": "Root project for Autonomize AI Task Management System",
+    "scripts": {
+        "install:all": "npm install && npm install --prefix backend && npm install --prefix frontend",
+        "dev": "concurrently \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
+        "build": "npm run build --prefix backend && npm run build --prefix frontend"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "concurrently": "^8.2.2"
+    }
+}

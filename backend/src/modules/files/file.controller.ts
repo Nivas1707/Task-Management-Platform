@@ -1,8 +1,6 @@
 import { Response } from 'express';
 import { AuthRequest } from '../../middleware/auth';
 import prisma from '../../utils/prisma';
-import fs from 'fs';
-import path from 'path';
 
 export const uploadFiles = async (req: AuthRequest, res: Response): Promise<void> => {
     if (!req.user) { res.status(401).json({ message: 'Unauthorized' }); return; }
@@ -26,10 +24,10 @@ export const uploadFiles = async (req: AuthRequest, res: Response): Promise<void
 
         const filesData = (req.files as Express.Multer.File[]).map(file => ({
             originalName: file.originalname,
-            filename: file.filename,
-            path: file.path,
+            filename: file.originalname, // Using original name as filename since we don't have disk path
             mimeType: file.mimetype,
             size: file.size,
+            data: file.buffer, // Store buffer directly
             taskId: taskId
         }));
 
@@ -37,6 +35,7 @@ export const uploadFiles = async (req: AuthRequest, res: Response): Promise<void
 
         res.status(201).json({ message: 'Files uploaded successfully', count: filesData.length });
     } catch (error) {
+        console.error('Upload error:', error);
         res.status(500).json({ message: 'Server error', error });
     }
 };
@@ -52,20 +51,13 @@ export const deleteFile = async (req: AuthRequest, res: Response): Promise<void>
             return;
         }
 
-        // Check if user has access to the task associated with the file
-        // For now, assuming if they can see the task they can delete files? Or maybe just task owner.
-        // Let's restrict to task owner for safety.
         const task = await prisma.task.findUnique({ where: { id: file.taskId } });
         if (!task || task.userId !== req.user.id) {
             res.status(403).json({ message: 'Forbidden' });
             return;
         }
 
-        // Delete from filesystem
-        fs.unlink(file.path, (err) => {
-            if (err) console.error('Failed to delete file from disk:', err);
-        });
-
+        // No filesystem delete needed
         await prisma.file.delete({ where: { id: String(id) } });
         res.json({ message: 'File deleted' });
     } catch (error) {
@@ -74,7 +66,6 @@ export const deleteFile = async (req: AuthRequest, res: Response): Promise<void>
 };
 
 export const getFile = async (req: AuthRequest, res: Response): Promise<void> => {
-    // Basic download/view
     try {
         const { id } = req.params;
         const file = await prisma.file.findUnique({ where: { id: String(id) } });
@@ -82,7 +73,10 @@ export const getFile = async (req: AuthRequest, res: Response): Promise<void> =>
             res.status(404).json({ message: 'File not found' });
             return;
         }
-        res.download(file.path, file.originalName);
+
+        res.setHeader('Content-Type', file.mimeType);
+        res.setHeader('Content-Disposition', `attachment; filename="${file.originalName}"`);
+        res.send(file.data);
     } catch (error) {
         res.status(500).json({ message: 'Server error', error });
     }

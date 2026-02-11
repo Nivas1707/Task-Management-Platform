@@ -34,6 +34,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         const token = generateToken(user.id);
         res.status(201).json({ token, user: { id: user.id, email: user.email, name: user.name } });
     } catch (error) {
+        console.error('Registration error:', error);
         res.status(500).json({ message: 'Server error', error });
     }
 };
@@ -63,6 +64,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         const token = generateToken(user.id);
         res.json({ token, user: { id: user.id, email: user.email, name: user.name } });
     } catch (error) {
+        console.error('Login error:', error);
         res.status(500).json({ message: 'Server error', error });
     }
 };
@@ -78,4 +80,16 @@ export const getMe = async (req: AuthRequest, res: Response): Promise<void> => {
         select: { id: true, email: true, name: true, createdAt: true }
     });
     res.json(user);
+};
+
+export const getUsers = async (req: AuthRequest, res: Response): Promise<void> => {
+    if (!req.user) { res.status(401).json({ message: 'Unauthorized' }); return; }
+    try {
+        const users = await prisma.user.findMany({
+            select: { id: true, name: true, email: true }
+        });
+        res.json(users);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error });
+    }
 };
