@@ -143,7 +143,17 @@ export const getTask = async (req: AuthRequest, res: Response): Promise<void> =>
                     include: { user: { select: { id: true, name: true } } },
                     orderBy: { createdAt: 'asc' }
                 },
-                files: true,
+                files: {
+                    select: {
+                        id: true,
+                        originalName: true,
+                        filename: true,
+                        mimeType: true,
+                        size: true,
+                        createdAt: true,
+                        taskId: true
+                    }
+                },
                 assignedTo: { select: { id: true, name: true, email: true } }
             }
         });
@@ -235,13 +245,20 @@ export const updateTask = async (req: AuthRequest, res: Response): Promise<void>
         const id = String(req.params.id);
         const validation = updateTaskSchema.safeParse(req.body);
         if (!validation.success) {
+            console.error('[UPDATE_TASK] Validation Error:', JSON.stringify(validation.error.issues, null, 2));
             res.status(400).json({ errors: validation.error.issues });
             return;
         }
 
-        const existingTask = await prisma.task.findFirst({ where: { id, userId: req.user.id } });
+        const existingTask = await prisma.task.findFirst({ where: { id, deletedAt: null } });
         if (!existingTask) {
             res.status(404).json({ message: 'Task not found' });
+            return;
+        }
+
+        // Check permissions: Allow if creator OR assignee
+        if (existingTask.userId !== req.user.id && existingTask.assignedToId !== req.user.id) {
+            res.status(403).json({ message: 'Forbidden: You are not allowed to edit this task' });
             return;
         }
 
@@ -252,9 +269,16 @@ export const updateTask = async (req: AuthRequest, res: Response): Promise<void>
             description,
             status,
             priority,
-            dueDate: dueDate ? new Date(dueDate) : undefined,
             tags,
         };
+
+        if (dueDate !== undefined) {
+            updateData.dueDate = dueDate ? new Date(dueDate) : null;
+        }
+
+        if (assignedToId !== undefined) {
+            updateData.assignedToId = assignedToId;
+        }
 
         if (priority) {
             updateData.priorityValue = getPriorityValue(priority);

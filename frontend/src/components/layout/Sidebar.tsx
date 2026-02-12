@@ -23,13 +23,13 @@ export const Sidebar = () => {
         <motion.aside
             initial={{ x: -100 }}
             animate={{ x: 0 }}
-            className="w-64 min-h-screen bg-[#111625]/50 backdrop-blur-xl border-r border-white/5 flex flex-col fixed left-0 top-0 z-50"
+            className="w-64 min-h-screen bg-white/80 dark:bg-[#111625]/50 backdrop-blur-xl border-r border-gray-200 dark:border-white/5 flex flex-col fixed left-0 top-0 z-50 transition-colors duration-300"
         >
             <div className="p-6 flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-500 to-pink-500 flex items-center justify-center font-bold text-white">
                     T
                 </div>
-                <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
+                <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400">
                     TaskFuture
                 </span>
             </div>
@@ -41,9 +41,9 @@ export const Sidebar = () => {
                         to={item.path}
                         className={({ isActive }) => `
               flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300
-              ${isActive
-                                ? 'bg-indigo-500/10 text-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.2)] border border-indigo-500/20'
-                                : 'text-gray-400 hover:text-white hover:bg-white/5'}
+                ${isActive
+                                ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400 shadow-sm dark:shadow-[0_0_15px_rgba(99,102,241,0.2)] border border-indigo-200 dark:border-indigo-500/20'
+                                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5'}
             `}
                     >
                         {item.icon}

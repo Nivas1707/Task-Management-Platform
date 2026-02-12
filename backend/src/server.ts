@@ -4,7 +4,7 @@ import app from './app';
 import dotenv from 'dotenv';
 import prisma from './utils/prisma';
 
-dotenv.config();
+dotenv.config({ path: '.env', debug: false, override: false }); // quiet mode is not directly supported by standard dotenv, but usually achieved by not enabling debug
 
 const PORT = process.env.PORT || 3000;
 

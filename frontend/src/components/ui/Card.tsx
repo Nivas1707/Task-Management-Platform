@@ -15,8 +15,8 @@ export const Card: React.FC<CardProps> = ({ children, className = '', hoverEffec
             transition={{ duration: 0.5 }}
             whileHover={hoverEffect ? { y: -5, boxShadow: '0 10px 40px -10px rgba(99,102,241,0.2)' } : {}}
             className={`
-        bg-[#111625]/70 backdrop-blur-xl border border-white/5 rounded-2xl p-6
-        shadow-xl ${className}
+        bg-white dark:bg-[#111625]/70 backdrop-blur-xl border border-gray-200 dark:border-white/5 rounded-2xl p-6
+        shadow-xl dark:shadow-none text-gray-900 dark:text-gray-100 ${className}
       `}
             {...props}
         >

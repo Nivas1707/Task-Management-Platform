@@ -8,25 +8,28 @@ import { PrivateRoute } from './components/layout/PrivateRoute';
 import { DashboardPage } from './pages/dashboard/DashboardPage';
 import { TasksPage } from './pages/tasks/TasksPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
+import { ThemeProvider } from './context/ThemeContext';
 
 const App = () => {
   return (
     <Router>
-      <AuthProvider>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+      <ThemeProvider>
+        <AuthProvider>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
 
-          <Route element={<PrivateRoute />}>
-            <Route element={<DashboardLayout />}>
-              <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/tasks" element={<TasksPage />} />
-              <Route path="/analytics" element={<AnalyticsPage />} />
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route element={<PrivateRoute />}>
+              <Route element={<DashboardLayout />}>
+                <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/tasks" element={<TasksPage />} />
+                <Route path="/analytics" element={<AnalyticsPage />} />
+                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              </Route>
             </Route>
-          </Route>
-        </Routes>
-      </AuthProvider>
+          </Routes>
+        </AuthProvider>
+      </ThemeProvider>
     </Router>
   );
 };

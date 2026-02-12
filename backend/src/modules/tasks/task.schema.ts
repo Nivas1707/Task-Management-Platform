@@ -14,12 +14,12 @@ export const bulkCreateTaskSchema = z.array(createTaskSchema);
 
 export const updateTaskSchema = z.object({
     title: z.string().min(1).optional(),
-    description: z.string().optional(),
+    description: z.union([z.string(), z.null()]).optional(),
     status: z.enum(['OPEN', 'IN_PROGRESS', 'DONE']).optional(),
     priority: z.enum(['LOW', 'MEDIUM', 'HIGH']).optional(),
-    dueDate: z.string().nullable().optional(),
+    dueDate: z.union([z.string(), z.null()]).optional(), // Allow string, null, or undefined
     tags: z.array(z.string()).optional(),
-    assignedToId: z.string().optional().nullable(),
+    assignedToId: z.string().nullable().optional(),
 });
 
 export const taskQuerySchema = z.object({

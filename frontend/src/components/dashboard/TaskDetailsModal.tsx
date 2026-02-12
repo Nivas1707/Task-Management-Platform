@@ -95,12 +95,28 @@ export const TaskDetailsModal = ({ taskId, onClose, onUpdate }: TaskDetailsModal
 
     const handleAddComment = async () => {
         if (!newComment.trim()) return;
+
+        const tempId = Date.now().toString();
+        const optimisticComment: Comment = {
+            id: tempId,
+            content: newComment,
+            createdAt: new Date().toISOString(),
+            user: { id: user?.id || '', name: user?.name || 'You' }
+        };
+
+        setComments(prev => [...prev, optimisticComment]);
+        setNewComment('');
+
         try {
-            await api.post(`/tasks/${taskId}/comments`, { content: newComment });
-            setNewComment('');
+            await api.post('/comments', { content: optimisticComment.content, taskId });
+            // Ideally replace the temp comment with the real one, but fetching details ensures consistency
             fetchTaskDetails();
         } catch (error) {
             console.error('Failed to add comment', error);
+            // Rollback
+            setComments(prev => prev.filter(c => c.id !== tempId));
+            setNewComment(optimisticComment.content); // Restore input
+            alert('Failed to add comment');
         }
     };
 
@@ -135,12 +151,16 @@ export const TaskDetailsModal = ({ taskId, onClose, onUpdate }: TaskDetailsModal
 
     const handleFileUpload = async (selectedFiles: File[]) => {
         const formData = new FormData();
+        if (taskId) {
+            formData.append('taskId', taskId);
+        }
+
         selectedFiles.forEach(file => {
             formData.append('files', file);
         });
 
         try {
-            await api.post(`/tasks/${taskId}/files`, formData, {
+            await api.post('/files/upload', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             fetchTaskDetails();
@@ -214,7 +234,8 @@ export const TaskDetailsModal = ({ taskId, onClose, onUpdate }: TaskDetailsModal
                 description: editTaskData.description,
                 status: editTaskData.status,
                 priority: editTaskData.priority,
-                dueDate: editTaskData.dueDate,
+                // Handle empty string for date inputs by converting to null
+                dueDate: editTaskData.dueDate ? editTaskData.dueDate : null,
                 tags: editTaskData.tags
                 // assignedToId: ... (User selection might need specific handling if the UI supports it)
             };

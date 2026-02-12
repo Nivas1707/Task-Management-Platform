@@ -52,7 +52,7 @@ export const deleteFile = async (req: AuthRequest, res: Response): Promise<void>
         }
 
         const task = await prisma.task.findUnique({ where: { id: file.taskId } });
-        if (!task || task.userId !== req.user.id) {
+        if (!task || (task.userId !== req.user.id && task.assignedToId !== req.user.id)) {
             res.status(403).json({ message: 'Forbidden' });
             return;
         }
