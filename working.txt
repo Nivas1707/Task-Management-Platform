@@ -1,0 +1,73 @@
+# System Architecture & Technical Challenges Brief
+
+## 1. Code Architecture Explanation
+
+The project follows a **Feature-Based Modular Architecture** on the backend and a **Context-Driven Component Architecture** on the frontend. This ensures scalability, maintainability, and clean separation of concerns.
+
+### Backend (Node.js / Express / TypeScript)
+- **Modular Structure**: Instead of grouping files by type (controllers, routes), we group them by domain (e.g., `modules/tasks`, `modules/auth`). This makes the codebase easier to navigate and scalable.
+- **Layered Design**:
+    1.  **Routes (`*.routes.ts`)**: Define endpoints and apply middleware (Auth, Validation).
+    2.  **Controllers (`*.controller.ts`)**: Handle HTTP request/response logic and valid input using Zod.
+    3.  **Services/Prisma**: Direct database interactions using Prisma ORM.
+- **Middleware Pipeline**: Centralized error handling, authentication (`Bearer` token), and file upload processing (`Multer`).
+
+### Frontend (React / Vite / TypeScript)
+- **Context API for State**: Global state (User Session, Theme) is managed via React Context (`AuthContext`, `ThemeContext`) to avoid "prop drilling."
+- **Component Reusability**: UI elements (Buttons, Cards, Modals) are isolated in `components/ui`, promoting distinct design consistency.
+- **Utility-First Styling**: Tailwind CSS is used for rapid UI development, configured with a `class` based Dark Mode strategy.
+
+---
+
+## 2. Technical Challenges Solved
+
+### A. Robust input Validation vs. Null Handling
+*   **Challenge**: The "Update Task" feature was breaking because the frontend often sent empty strings or `null` for optional fields like `dueDate`, while the backend Schema (`Zod`) was strict.
+*   **Solution**: We updated the Zod schemas to strictly define `nullable()` vs `optional()` fields and refactored the frontend `TaskDetailsModal` to clean data (convert empty strings to `null`) before sending.
+
+### B. Scalable Theme Management (Dark Mode)
+*   **Challenge**: Implementing a system-wide Dark Mode that persists across reloads and applies instantly without "flashing."
+*   **Solution**: Built a `ThemeContext` that reads from `localStorage` on initialization and applies a class to the root `HTML` element. We also updated `tailwind.config.js` to use `darkMode: 'class'` for granular control.
+
+### C. Automated Documentation Generation
+*   **Challenge**: Providing a professional, offline-readable API document for external stakeholders or compliance.
+*   **Solution**: Created a `swagger.yaml` as the single source of truth and wrote a custom Python script (`generate_pdf.py`) using `reportlab` to parse the YAML and render a structured PDF specifically formatted for team review.
+
+---
+
+## 3. Key Code Locations for Team Walkthrough
+
+Use these files to demonstrate the architecture to the team:
+
+### Backend Core
+- **App Entry & Middleware Setup**: 
+  `backend/src/app.ts` 
+  (Shows how routes, CORS, and Swagger UI are wired together).
+
+- **Modular Implementation (Example: Tasks)**:
+  `backend/src/modules/tasks/task.controller.ts`
+  `backend/src/modules/tasks/task.routes.ts`
+  `backend/src/modules/tasks/task.schema.ts`
+  (Demonstrates the Controller-Service pattern and Zod validation).
+
+- **Authentication Middleware**:
+  `backend/src/middleware/auth.ts`
+  (Shows JWT verification logic).
+
+### Frontend Core
+- **Global State (Theme & Auth)**:
+  `frontend/src/context/ThemeContext.tsx`
+  `frontend/src/context/AuthContext.tsx`
+  (Explain how we manage app-wide state here).
+
+- **API Integration**:
+  `frontend/src/services/api.ts`
+  (Centralized Axios instance with interceptors for token handling).
+
+- **Complex UI Logic**:
+  `frontend/src/components/dashboard/TaskDetailsModal.tsx`
+  (Shows form handling, validation, and optimistic updates).
+
+### Documentation Tools
+- **API Specification**: `swagger.yaml` (Root)
+- **PDF Generator**: `generate_pdf.py` (Root)
