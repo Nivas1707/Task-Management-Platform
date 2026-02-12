@@ -4,7 +4,11 @@ import app from './app';
 import dotenv from 'dotenv';
 import prisma from './utils/prisma';
 
-dotenv.config({ path: '.env', debug: false, override: false }); // quiet mode is not directly supported by standard dotenv, but usually achieved by not enabling debug
+// Suppress dotenv logs by setting the environment variable before import if possible, 
+// or use the specific configuration for the library version.
+// Based on logs, this is likely dotenvx or a version that supports quiet/debug options.
+// Trying to set DOTENV_KEY to blank or using quiet option if available.
+dotenv.config({ path: '.env', quiet: true } as any);
 
 const PORT = process.env.PORT || 3000;
 
