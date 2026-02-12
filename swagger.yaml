@@ -1,0 +1,381 @@
+openapi: 3.0.0
+info:
+  title: Task Management API
+  description: API documentation for the Task Management System
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000/api
+    description: Local server
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Task:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [OPEN, IN_PROGRESS, DONE]
+        priority:
+          type: string
+          enum: [LOW, MEDIUM, HIGH]
+        dueDate:
+          type: string
+          format: date-time
+        tags:
+          type: array
+          items:
+            type: string
+    Comment:
+      type: object
+      properties:
+        id:
+          type: string
+        content:
+          type: string
+        taskId:
+          type: string
+        userId:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    File:
+      type: object
+      properties:
+        id:
+          type: string
+        originalName:
+          type: string
+        mimeType:
+          type: string
+        size:
+          type: integer
+        taskId:
+          type: string
+
+security:
+  - bearerAuth: []
+paths:
+  /auth/register:
+    post:
+      summary: Register a new user
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password, name]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 6
+                name:
+                  type: string
+      responses:
+        201:
+          description: User created
+        400:
+          description: Validation error
+  /auth/login:
+    post:
+      summary: Login user
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        200:
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  user:
+                    type: object
+  /tasks:
+    get:
+      summary: Get all tasks
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+        - in: query
+          name: limit
+          schema:
+            type: integer
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [OPEN, IN_PROGRESS, DONE]
+        - in: query
+          name: priority
+          schema:
+            type: string
+            enum: [LOW, MEDIUM, HIGH]
+      responses:
+        200:
+          description: List of tasks
+    post:
+      summary: Create a new task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title]
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                status:
+                  type: string
+                  enum: [OPEN, IN_PROGRESS, DONE]
+                priority:
+                  type: string
+                  enum: [LOW, MEDIUM, HIGH]
+                dueDate:
+                  type: string
+                  format: date-time
+                tags:
+                  type: array
+                  items:
+                    type: string
+                assignedToId:
+                  type: string
+      responses:
+        201:
+          description: Task created
+  /tasks/bulk:
+    post:
+      summary: Bulk create tasks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                required: [title]
+                properties:
+                  title:
+                    type: string
+                  description:
+                    type: string
+                  status:
+                    type: string
+                  priority:
+                    type: string
+      responses:
+        201:
+          description: Tasks created successfully
+  /tasks/{id}:
+    get:
+      summary: Get a specific task
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Task details
+        404:
+          description: Task not found
+    put:
+      summary: Update a task
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                  nullable: true
+                status:
+                  type: string
+                priority:
+                  type: string
+                dueDate:
+                  type: string
+                  nullable: true
+      responses:
+        200:
+          description: Task updated
+    delete:
+      summary: Delete a task
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Task deleted
+  /comments:
+    post:
+      summary: Create a comment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [content, taskId]
+              properties:
+                content:
+                  type: string
+                taskId:
+                  type: string
+      responses:
+        201:
+          description: Comment created
+  /comments/task/{taskId}:
+    get:
+      summary: Get comments for a task
+      parameters:
+        - in: path
+          name: taskId
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: List of comments
+  /comments/{id}:
+    put:
+      summary: Update a comment
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [content]
+              properties:
+                content:
+                  type: string
+      responses:
+        200:
+          description: Comment updated
+    delete:
+      summary: Delete a comment
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Comment deleted
+  /files/upload:
+    post:
+      summary: Upload files
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                taskId:
+                  type: string
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        201:
+          description: Files uploaded
+  /files/{id}:
+    delete:
+      summary: Delete a file
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: File deleted
+  /files/{id}/download:
+    get:
+      summary: Download a file
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: File download
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+  /analytics/stats:
+    get:
+      summary: Get task statistics
+      responses:
+        200:
+          description: Task statistics including counts by status/priority and completion rates
+  /analytics/trends:
+    get:
+      summary: Get task trends
+      responses:
+        200:
+          description: Task creation and completion trends over time
